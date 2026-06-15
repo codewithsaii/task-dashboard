@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Dashboard</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,.1);
+}
+
+.form {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+}
+
+button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.task-list {
+    display: grid;
+    gap: 15px;
+}
+
+.task {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,.1);
+}
+
+.completed {
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+
+.actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.delete {
+    background: crimson;
+}
+
+.priority-high {
+    color: red;
+}
+
+.priority-medium {
+    color: orange;
+}
+
+.priority-low {
+    color: green;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>Task Management Dashboard</h1>
+
+<div class="stats">
+    <div class="card">
+        <h3>Total Tasks</h3>
+        <h2 id="totalTasks">1</h2>
+    </div>
+
+    <div class="card">
+        <h3>Completed</h3>
+        <h2 id="completedTasks">1</h2>
+    </div>
+
+    <div class="card">
+        <h3>Pending</h3>
+        <h2 id="pendingTasks">0</h2>
+    </div>
+</div>
+
+<div class="form">
+    <input id="title" placeholder="Task title">
+
+    <textarea id="description" placeholder="Description"></textarea>
+
+    <select id="priority">
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High" selected="selected">High</option>
+    </select>
+
+    <button onclick="addTask()">
+        Add Task
+    </button>
+</div>
+
+<div id="taskList" class="task-list"><div class="task completed">
+            <h3>Complete Project</h3>
+
+            <p>Build task management dashbord</p>
+
+            <strong class="priority-high">
+                High
+            </strong>
+
+            <div class="actions">
+
+                <button onclick="toggleTask(0)">
+                    Undo
+                </button>
+
+                <button class="delete" onclick="deleteTask(0)">
+                    Delete
+                </button>
+
+            </div>
+        </div></div>
+
+</div>
+
+<script>
+let tasks =
+    JSON.parse(localStorage.getItem("tasks")) || [];
+
+function saveTasks() {
+    localStorage.setItem(
+        "tasks",
+        JSON.stringify(tasks)
+    );
+}
+
+function updateStats() {
+    const completed =
+        tasks.filter(t => t.completed).length;
+
+    document.getElementById(
+        "totalTasks"
+    ).textContent = tasks.length;
+
+    document.getElementById(
+        "completedTasks"
+    ).textContent = completed;
+
+    document.getElementById(
+        "pendingTasks"
+    ).textContent =
+        tasks.length - completed;
+}
+
+function renderTasks() {
+
+    const taskList =
+        document.getElementById("taskList");
+
+    taskList.innerHTML = "";
+
+    tasks.forEach((task,index) => {
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            `task ${
+                task.completed
+                    ? "completed"
+                    : ""
+            }`;
+
+        div.innerHTML = `
+            <h3>${task.title}</h3>
+
+            <p>${task.description}</p>
+
+            <strong
+             class="priority-${task.priority.toLowerCase()}">
+                ${task.priority}
+            </strong>
+
+            <div class="actions">
+
+                <button
+                 onclick="toggleTask(${index})">
+                    ${
+                        task.completed
+                        ? "Undo"
+                        : "Complete"
+                    }
+                </button>
+
+                <button
+                 class="delete"
+                 onclick="deleteTask(${index})">
+                    Delete
+                </button>
+
+            </div>
+        `;
+
+        taskList.appendChild(div);
+    });
+
+    updateStats();
+    saveTasks();
+}
+
+function addTask() {
+
+    const title =
+        document.getElementById("title").value;
+
+    const description =
+        document.getElementById("description").value;
+
+    const priority =
+        document.getElementById("priority").value;
+
+    if (!title.trim()) {
+        alert("Enter task title");
+        return;
+    }
+
+    tasks.push({
+        title,
+        description,
+        priority,
+        completed: false
+    });
+
+    document.getElementById("title").value = "";
+    document.getElementById("description").value = "";
+
+    renderTasks();
+}
+
+function toggleTask(index) {
+
+    tasks[index].completed =
+        !tasks[index].completed;
+
+    renderTasks();
+}
+
+function deleteTask(index) {
+
+    tasks.splice(index,1);
+
+    renderTasks();
+}
+
+renderTasks();
+</script>
+
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+
+</body></html>
